@@ -127,7 +127,7 @@ class Ur(object):
             print("Please choose a piece from %s \r\n"
                   % (", ".join(pieces)))
             if self.players[self.curPlayer]['type'] == self.AI:
-                piece = self.AI.choose(pieces, self.board)
+                piece = self.AI.choose(pieces, step, self.board)
             elif self.players[self.curPlayer]['type'] == self.HUMAN:
                 piece = input("Your choice (q to quit): ")
                 while piece not in pieces:

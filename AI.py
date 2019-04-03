@@ -11,5 +11,5 @@ class Player(object):
     def __init__(self):
         super(Player, self).__init__()
 
-    def choose(self, pieces, board):
+    def choose(self, pieces, step, board):
         return random.choice(pieces)
