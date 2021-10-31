@@ -44,6 +44,7 @@ class Board(object):
     def setPlayers(self):
         self.p1 = 'A'
         self.p2 = 'B'
+        self.path_index = {self.p1: 0, self.p2: 1}
         self.p1Pieces = ['A' + str(x) for x in range(0, self.MAX_PIECES)]
         self.p2Pieces = ['B' + str(x) for x in range(0, self.MAX_PIECES)]
         self.p1Path = self.PATHS[0]
@@ -54,6 +55,18 @@ class Board(object):
     def isCellEmpty(self, coord):
         return len(self.board[coord[0]][coord[1]]) == 0
 
+    def opponentCell(self, current_player, coord):
+        players = [self.p1, self.p2]
+        players.remove(current_player)
+
+        coord_val = self.board[coord[0]][coord[1]][0]
+        if coord_val and len(players) > 0 and players[0] in coord_val[1]:
+            return True
+        return False
+
+    def cellSafe(self, coord):
+            return self.board[coord[0]][coord[1]] == '-xx-'
+        
     def isOccupied(self, position):
         for pidO, positionO in self.piecesPosition.items():
             if positionO != position:
