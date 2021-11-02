@@ -1,4 +1,5 @@
 import random
+import json
 
 class Player(object):
     """docstring for Player
@@ -10,7 +11,16 @@ class Player(object):
     def __init__(self):
         super(Player, self).__init__()
         self.score = 0
+        self.player_reward = {}
 
+    def save_data(self):
+      with open('data/rewards.json', 'w') as file:
+        json.dump(self.player_reward, file)
+
+
+    def update_rewards(self, current_player, reward):
+      self.player_reward[current_player] = self.player_reward.get(current_player,[]) + [reward]
+        
 
     def greedy_selection(self,current_player, pieces, step, board):
         """
@@ -46,6 +56,9 @@ class Player(object):
               max_reward = reward
 
         self.score += max_reward
+
+        # update reward dict
+        self.update_rewards(current_player=current_player, reward=max_reward)
         return piece_with_max_reward
 
 
