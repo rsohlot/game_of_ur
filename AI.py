@@ -47,13 +47,14 @@ class Player(object):
         Greedy selection of the best move.
         """
         reward = 0
-        next_pos = -1
+        complete = False
+        opponent_killed = False
         piece_pos = board.piecesPosition[current_player + choice]
         path_index = board.path_index.get(current_player)
         if piece_pos + step == len(board.PATHS[path_index]):
           # finish the piece
           reward = 100
-          next_pos = -1
+          complete = True
 
         elif piece_pos + step  < len(board.PATHS[path_index]):
           next_pos = board.PATHS[path_index][piece_pos + step]
@@ -63,7 +64,7 @@ class Player(object):
             occupied_status = board.opponentCell(current_player, next_pos)
             if occupied_status:
               reward = 40
-
+              opponent_killed = True
             elif board.cellSafe(next_pos):
               reward = 20
             else:
@@ -71,7 +72,7 @@ class Player(object):
         # update reward for player
         self.player_reward[current_player] = self.player_reward.get(current_player,0) + reward
         
-        return reward
+        return reward, complete, opponent_killed
 
 
     def greedy_action_selection(self, current_player, pieces, step, board, possible_actions):
@@ -80,7 +81,7 @@ class Player(object):
         '''
         q_values = self.q_values.get(current_player,{})
         if q_values and np.random.rand() < (1 - self.epsilon):
-            best_val = np.max(tuple(q_values.values())[0][3])
+            best_val = sorted(q_values.items(), key=lambda e: e[1][3])[-1][1][3]
             b_actions = list(filter(lambda elem: elem[1][3] == best_val, q_values.items()))
             best_action = b_actions[np.random.choice(len(b_actions))][1][1]
             if best_action in possible_actions.keys(): 
@@ -100,11 +101,13 @@ class Player(object):
         return possible_actions
 
 
-    def set_q_value(self, current_player, choice, step, reward, board):
+    def set_q_value(self, current_player, choice, step, reward, board, complete, opponent_killed):
       current_pos = board.piecesPosition[current_player + choice]
       state = str(current_player)+","+str(current_pos)
-      action = str(current_pos+step)+","+str(step)
-      q_value_key = str(state)+","+str(action)
+      action = str(current_pos)+","+str(current_pos+step)
+      rewards = str(reward)+","+str(complete)+","+str(opponent_killed)
+      
+      q_value_key = str(state)+","+str(action)+","+ str(rewards)
       if current_player not in self.q_values.keys():
         self.q_values[current_player] = {}
       # Q -value
@@ -121,7 +124,7 @@ class Player(object):
         # choice =  np.random.choice(pieces)
         possible_actions = self.possible_action(step, current_player, board)
         choice = self.greedy_action_selection(current_player, pieces, step, board, possible_actions)
-        reward = self.check_reward(current_player, choice, step, board)
-        self.set_q_value(current_player, choice, step, reward, board)
+        reward, complete, opponent_killed = self.check_reward(current_player, choice, step, board)
+        self.set_q_value(current_player, choice, step, reward, board, complete, opponent_killed)
         return choice
 

@@ -5,10 +5,14 @@ import matplotlib.pyplot as plt
 import logging
 import json
 
+players = ['A', 'B']
+
+
 def load_rewards():
     with open('data/rewards.json') as file:
         rewards = json.load(file)
-    player1_rewards, player2_rewards = rewards.values()
+    player1_rewards = rewards.get(players[0])
+    player2_rewards = rewards.get(players[1])
     return player1_rewards, player2_rewards
 
 def train():
@@ -29,10 +33,17 @@ def train():
         logging.info('Inturpt the training.')
 
     # save figure
-    ax = plt.gca()
-    # plt.plot(pd.DataFrame(episodes_data).rolling(10, min_periods=1).mean(), color='red')
     data = pd.DataFrame(episodes_data)
+    # 1 
+    # ax = plt.gca()
+    # ax.set_xlabel('Episode')
+    # ax.set_ylabel('Time')
+    # ax.set_title('Training time')
+    # plt.plot(data[['player1_rewards','player2_rewards']].rolling(10, min_periods=1).mean(), color='C0')
+    # 2
     data.plot(x='episode', y=['player1_rewards', 'player2_rewards'], ax=ax)
+
+    
     logging.info('Saving figure and data')
     plt.savefig('data/value_function_mc.jpg', dpi=600)    
     data.to_csv('data/value_function_mc.csv', index=False)
