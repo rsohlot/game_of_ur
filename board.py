@@ -62,12 +62,12 @@ class Board(object):
 
         coord_val = self.board[coord[0]][coord[1]][0]
         # cosider player wil contain only one opponent player
-        if coord_val and len(players) > 0 and players[0] in coord_val[1]:
+        if coord_val and len(players) > 0 and players[0] in coord_val:
             return True
         return False
 
     def cellSafe(self, coord):
-            return self.board[coord[0]][coord[1]] == '-xx-'
+            return self.board[coord[0]][coord[1]][0] == 'xx'
         
     def isOccupied(self, position):
         for pidO, positionO in self.piecesPosition.items():
