@@ -40,4 +40,10 @@ To train. Run train.py
 python train.py
 ```
 
+To clear older data files
+
+```bash
+python clear_clutter.py
+```
+
 Happy Coding!!

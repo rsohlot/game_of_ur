@@ -106,6 +106,7 @@ class Ur(object):
 
         self.declare(completed, winner)
         self.AI.save_q_values()
+        self.AI.save_rewards()
 
     def getDice(self):
         return random.randint(0, 4)

@@ -24,6 +24,11 @@ class Player(object):
         self.load_q_values()
 
 
+    def save_rewards(self):
+      with open('data/rewards.json', 'w') as file:
+        json.dump(self.player_reward, file)
+
+
     def save_q_values(self):
       with open(self.q_values_file_path , 'w') as file:
         json.dump(self.q_values, file)
@@ -63,8 +68,9 @@ class Player(object):
               reward = 20
             else:
               reward =10
-
-
+        # update reward for player
+        self.player_reward[current_player] = self.player_reward.get(current_player,0) + reward
+        
         return reward
 
 
@@ -98,16 +104,17 @@ class Player(object):
       current_pos = board.piecesPosition[current_player + choice]
       state = str(current_player)+","+str(current_pos)
       action = str(current_pos+step)+","+str(step)
+      q_value_key = str(state)+","+str(action)
       if current_player not in self.q_values.keys():
         self.q_values[current_player] = {}
       # Q -value
       G = 0
       G = reward + (self.gamma * G)
       new_q_tuple = (state,action,reward,0)
-      old_q_tuple = self.q_values.get(current_player,{}).get(state,new_q_tuple)[3]
+      old_q_tuple = self.q_values.get(current_player,{}).get(q_value_key,new_q_tuple)[3]
       q_value = (self.alpha * (G - old_q_tuple))
       q_value = q_value + old_q_tuple
-      self.q_values[current_player][state] = (state,action,reward,q_value)
+      self.q_values[current_player][q_value_key] = (state,action,reward,q_value)
 
 
     def choose(self, current_player, pieces, step, board):
