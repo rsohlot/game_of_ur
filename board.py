@@ -57,9 +57,11 @@ class Board(object):
 
     def opponentCell(self, current_player, coord):
         players = [self.p1, self.p2]
+        # removing the current player from the list,leaving only the opponent
         players.remove(current_player)
 
         coord_val = self.board[coord[0]][coord[1]][0]
+        # cosider player wil contain only one opponent player
         if coord_val and len(players) > 0 and players[0] in coord_val[1]:
             return True
         return False

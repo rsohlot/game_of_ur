@@ -45,13 +45,13 @@ class Player(object):
         next_pos = -1
         piece_pos = board.piecesPosition[current_player + choice]
         path_index = board.path_index.get(current_player)
-        if piece_pos + step -1 == len(board.PATHS[path_index]) + 1:
+        if piece_pos + step == len(board.PATHS[path_index]):
           # finish the piece
           reward = 100
           next_pos = -1
 
-        if piece_pos + step -1 < len(board.PATHS[path_index]):
-          next_pos = board.PATHS[path_index][piece_pos + step-1]
+        elif piece_pos + step  < len(board.PATHS[path_index]):
+          next_pos = board.PATHS[path_index][piece_pos + step]
           if piece_pos == -1:
             reward = 10
           else:  
@@ -78,8 +78,8 @@ class Player(object):
             # b_actions=np.arange(q_values, dtype=dict)[tuple(q_values.values())[0][3]==best_val]
             b_actions = list(filter(lambda elem: elem[1][3] == best_val, q_values.items()))
             best_action = b_actions[np.random.choice(len(b_actions))][1][1]
-            if best_action in possible_actions.keys():
-                return possible_actions[best_action]
+            if best_action in possible_actions.keys(): 
+              return possible_actions[best_action][0]
         return np.random.choice(pieces)
 
     
@@ -87,37 +87,34 @@ class Player(object):
         possible_actions = {}
         path_index = board.path_index.get(current_player)
         for piece,each_piece_pos in  board.piecesPosition.items():
-          if each_piece_pos + step -1 < len(board.PATHS[path_index]):
-            if piece[0] == current_player:
-              # path_coord = board.PATHS[path_index][each_piece_pos + step-1]
-              # possible_action_list.append(path_coord)
-              possible_actions[str(each_piece_pos)+","+str(each_piece_pos + step-1)] = piece[1]
-            else:
-              continue
+          if piece[0] == current_player and each_piece_pos + step <= len(board.PATHS[path_index]):
+            action = str(each_piece_pos)+","+str(each_piece_pos + step)
+            possible_actions[action] = possible_actions.get(action,[]) + [piece[1]]
+          else:
+            continue
         return possible_actions
 
 
     def set_q_value(self, current_player, choice, step, reward, board):
       current_pos = board.piecesPosition[current_player + choice]
       state = str(current_player)+","+str(current_pos)
-      action = str(current_pos+step-1)+","+str(step)
+      action = str(current_pos+step)+","+str(step)
       if current_player not in self.q_values.keys():
         self.q_values[current_player] = {}
       # Q -value
       G = 0
       G = reward + (self.gamma * G)
-      new_q_value = (state,action,reward,0)
-      old_q_value = self.q_values.get(current_player,{}).get(state,new_q_value)[3]
-      q_value = (self.alpha * (G - old_q_value))
-      q_value = q_value + old_q_value
+      new_q_tuple = (state,action,reward,0)
+      old_q_tuple = self.q_values.get(current_player,{}).get(state,new_q_tuple)[3]
+      q_value = (self.alpha * (G - old_q_tuple))
+      q_value = q_value + old_q_tuple
       self.q_values[current_player][state] = (state,action,reward,q_value)
 
 
     def choose(self, current_player, pieces, step, board):
-        possible_actions = self.possible_action(step, current_player, board)
-        
-        choice = self.greedy_action_selection(current_player, pieces, step, board, possible_actions)
         # choice =  np.random.choice(pieces)
+        possible_actions = self.possible_action(step, current_player, board)
+        choice = self.greedy_action_selection(current_player, pieces, step, board, possible_actions)
         reward = self.check_reward(current_player, choice, step, board)
         self.set_q_value(current_player, choice, step, reward, board)
         return choice
