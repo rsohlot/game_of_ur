@@ -105,7 +105,7 @@ class Ur(object):
             self.switchPlayer(piece)
 
         self.declare(completed, winner)
-        self.AI.save_data()
+        self.AI.save_q_values()
 
     def getDice(self):
         return random.randint(0, 4)
