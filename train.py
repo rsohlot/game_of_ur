@@ -2,17 +2,22 @@ from play import Ur
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
+import logging
 
 
 def train():
-    episodes = 100000
+    episodes = 10000
     start_time = 0
     episodes_data = []
-    for i in range(episodes):
-        print("Episode: ", i)
-        start_time = time.time()
-        Ur().start({"gameType":"3", "autosaveMoves":"y"})
-        episodes_data.append({"episode": i, "time": time.time() - start_time})
+    try:
+        for i in range(episodes):
+            print("Episode: ", i)
+            start_time = time.time()
+            Ur().start({"gameType":"3", "autosaveMoves":"y"})
+            episodes_data.append({"episode": i, "time": time.time() - start_time})
+    
+    except KeyboardInterrupt:
+        logging.info('Inturpt the training.')
 
     # save figure
     plt.figure(figsize=(20, 6))
@@ -22,7 +27,9 @@ def train():
     plt.xlabel('Episodes')
     plt.ylabel('Value')
     plt.title("Time per episodes")
+    logging.info('Saving figure and data')
     plt.savefig('data/value_function_mc.jpg', dpi=600)    
+    data.to_csv('data/value_function_mc.csv', index=False)
 
 if __name__ == '__main__':
     train()
