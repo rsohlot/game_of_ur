@@ -75,7 +75,6 @@ class Player(object):
         q_values = self.q_values.get(current_player,{})
         if q_values and np.random.rand() < (1 - self.epsilon):
             best_val = np.max(tuple(q_values.values())[0][3])
-            # b_actions=np.arange(q_values, dtype=dict)[tuple(q_values.values())[0][3]==best_val]
             b_actions = list(filter(lambda elem: elem[1][3] == best_val, q_values.items()))
             best_action = b_actions[np.random.choice(len(b_actions))][1][1]
             if best_action in possible_actions.keys(): 
