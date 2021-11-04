@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import logging
 import json
+import argparse
 
 players = ['A', 'B']
 
@@ -15,8 +16,7 @@ def load_rewards():
     player2_rewards = rewards.get(players[1])
     return player1_rewards, player2_rewards
 
-def train():
-    episodes = 10000
+def train(episodes):
     start_time = 0
     episodes_data = []
     try:
@@ -34,8 +34,8 @@ def train():
 
     # save figure
     data = pd.DataFrame(episodes_data)
+    ax = plt.gca()
     # 1 
-    # ax = plt.gca()
     # ax.set_xlabel('Episode')
     # ax.set_ylabel('Time')
     # ax.set_title('Training time')
@@ -49,4 +49,9 @@ def train():
     data.to_csv('data/value_function_mc.csv', index=False)
 
 if __name__ == '__main__':
-    train()
+    parser = argparse.ArgumentParser()
+    parser.parse_args()
+    parser.add_argument('-e', '--episode', type=int, help='No. of episodes to train', default=10000)
+    args = parser.parse_args()
+    episodes = args.episode
+    train(episodes)
