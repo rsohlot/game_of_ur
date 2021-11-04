@@ -40,6 +40,12 @@ To train. Run train.py
 python train.py
 ```
 
+To train with episode count in args
+
+```bash
+python train.py -e 10000
+```
+
 To clear older data files
 
 ```bash
