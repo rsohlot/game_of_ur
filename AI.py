@@ -107,7 +107,7 @@ class Player(object):
       action = str(current_pos)+","+str(current_pos+step)
       rewards = str(reward)+","+str(complete)+","+str(opponent_killed)
       
-      q_value_key = str(state)+","+str(action)+","+ str(rewards)
+      q_value_key = str(state)+","+str(action)#+","+ str(rewards)
       if current_player not in self.q_values.keys():
         self.q_values[current_player] = {}
       # Q -value
@@ -116,7 +116,7 @@ class Player(object):
       new_q_tuple = (state,action,reward,0)
       old_q_tuple = self.q_values.get(current_player,{}).get(q_value_key,new_q_tuple)[3]
       q_value = (self.alpha * (G - old_q_tuple))
-      q_value = q_value + old_q_tuple
+      q_value = old_q_tuple + q_value
       self.q_values[current_player][q_value_key] = (state,action,reward,q_value)
 
 
