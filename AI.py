@@ -75,20 +75,26 @@ class Player(object):
         return reward, complete, opponent_killed
 
 
-    def greedy_action_selection(self, current_player, pieces, step, board, possible_actions):
+    def greedy_action_selection(self, current_player, step, board, possible_pieces, state, possible_actions):
         '''
         Preforms epsilon greedy action selectoin based on the Q-values.
         '''
-        q_values = self.q_values.get(current_player,{})
+        # get the action q values for the state
+        q_values = self.q_values.get(current_player,{}).get(state,{})
+        choice = random.choice(possible_pieces)
         if q_values and np.random.rand() < (1 - self.epsilon):
-            best_val = sorted(q_values.items(), key=lambda e: e[1][3])[-1][1][3]
-            b_actions = list(filter(lambda elem: elem[1][3] == best_val, q_values.items()))
-            best_action = b_actions[np.random.choice(len(b_actions))][1][1]
-            if best_action in possible_actions.keys(): 
-              return possible_actions[best_action][0]
-        return np.random.choice(pieces)
+          # get the max q value for the state
+          best_val = sorted(q_values.items(), key=lambda e: e[1])[-1][1]
+          b_actions = list(filter(lambda elem: elem[1] == best_val, q_values.items()))
+          best_action = b_actions[np.random.choice(len(b_actions))][0]
+          if best_action in possible_actions.keys():
+            # pick the first piece from the possible_pieces
+            best_pieces = [i for i in possible_actions[best_action] if len(possible_actions[best_action]) > 0 and i in possible_pieces]
+            if len(best_pieces) > 0:
+              choice =  best_pieces[0]
+        return choice
 
-    
+
     def possible_action(self, step, current_player, board):
         possible_actions = {}
         path_index = board.path_index.get(current_player)
@@ -101,30 +107,49 @@ class Player(object):
         return possible_actions
 
 
-    def set_q_value(self, current_player, choice, step, reward, board, complete, opponent_killed):
+    def set_q_value(self, current_player, choice, step, reward, board, complete, opponent_killed, all_pieces_pos):
       current_pos = board.piecesPosition[current_player + choice]
-      state = str(current_player)+","+str(current_pos)
+      state = str(",".join(map(str, all_pieces_pos)))
       action = str(current_pos)+","+str(current_pos+step)
       rewards = str(reward)+","+str(complete)+","+str(opponent_killed)
       
-      q_value_key = str(state)+","+str(action)#+","+ str(rewards)
       if current_player not in self.q_values.keys():
         self.q_values[current_player] = {}
+      if state not in self.q_values[current_player].keys():
+        self.q_values[current_player][state] = {}
+      if action not in self.q_values[current_player][state].keys():
+        self.q_values[current_player][state][action] = self.init_q_value
       # Q -value
-      G = 0
-      G = reward + (self.gamma * G)
-      new_q_tuple = (state,action,reward,0)
-      old_q_tuple = self.q_values.get(current_player,{}).get(q_value_key,new_q_tuple)[3]
-      q_value = (self.alpha * (G - old_q_tuple))
-      q_value = old_q_tuple + q_value
-      self.q_values[current_player][q_value_key] = (state,action,reward,q_value)
+      G = reward + self.gamma * self.q_values[current_player].get(state, {}).get(action, self.init_q_value)
+      new_q_value = self.q_values[current_player].get(state, {}).get(action, self.init_q_value) + self.alpha * (G - self.q_values[current_player].get(state, {}).get(action, self.init_q_value))
+      self.q_values[current_player][state][action] = new_q_value
+
+    def get_all_pieces_pos(self, current_player, board):
+      '''
+      Return list of position for all pieces
+      '''
+      pieces_number = ['1','2','3','4','5','6']
+      pieces_pos = []
+      for each_piece in pieces_number:
+        pieces_pos.append(board.piecesPosition[current_player + each_piece])
+      return pieces_pos
 
 
     def choose(self, current_player, pieces, step, board):
         # choice =  np.random.choice(pieces)
+        # check reward for each piece
+        all_pieces_pos = self.get_all_pieces_pos(current_player, board)
+        state = str(",".join(map(str, all_pieces_pos)))
         possible_actions = self.possible_action(step, current_player, board)
-        choice = self.greedy_action_selection(current_player, pieces, step, board, possible_actions)
-        reward, complete, opponent_killed = self.check_reward(current_player, choice, step, board)
-        self.set_q_value(current_player, choice, step, reward, board, complete, opponent_killed)
+
+        peices_reward = {}
+        for each_piece in pieces:
+          reward, complete, opponent_killed = self.check_reward(current_player, each_piece, step, board)
+          peices_reward[each_piece] = {'reward': reward, 'complete': complete, 'opponent_killed': opponent_killed}
+        choice = self.greedy_action_selection(current_player, step, board, pieces, state=state, possible_actions = possible_actions)
+        reward = peices_reward[choice]['reward']
+        complete = peices_reward[choice]['complete']
+        opponent_killed = peices_reward[choice]['opponent_killed']
+        self.set_q_value(current_player, choice, step, reward, board, complete, opponent_killed, all_pieces_pos)
         return choice
 
